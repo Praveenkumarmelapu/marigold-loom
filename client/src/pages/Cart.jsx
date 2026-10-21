@@ -1,32 +1,23 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { img, money } from '../lib/api';
 import { useCart } from '../context/CartContext.jsx';
 import { SHIPPING_FREE_OVER } from '../lib/brand';
 import Spinner from '../components/Spinner.jsx';
 
 export default function Cart() {
-  const { cart, loading, setQty, remove, clear } = useCart();
+  const { cart, loading, setQty, remove } = useCart();
   const [error, setError] = useState('');
-  const [placed, setPlaced] = useState(false);
 
   const run = async (fn) => { setError(''); try { await fn(); } catch (e) { setError(e.message); } };
 
   if (loading && cart.items.length === 0) return <Spinner />;
   const shipping = cart.subtotal === 0 || cart.subtotal >= SHIPPING_FREE_OVER ? 0 : 99;
 
-  if (placed) return (
-    <div className="container state-box">
-      <h1>Thank you</h1>
-      <p>This is a demo store, so no order or payment was created. Your cart has been cleared.</p>
-      <Link className="btn" to="/shop">Keep browsing</Link>
-    </div>
-  );
-
   if (cart.items.length === 0) return (
     <div className="container state-box">
       <h1>Your cart is empty</h1>
-      <p>Nothing here yet. The indigo throw is a good place to start.</p>
+      <p>Nothing here yet. The new arrivals are a good place to start.</p>
       <Link className="btn" to="/shop">Go to the shop</Link>
     </div>
   );
@@ -64,8 +55,8 @@ export default function Cart() {
             <div className="total"><dt>Total</dt><dd>{money(cart.subtotal + shipping)}</dd></div>
           </dl>
           {shipping > 0 && <p className="hint">Add {money(SHIPPING_FREE_OVER - cart.subtotal)} more for free shipping.</p>}
-          <button className="btn btn-block" disabled={cart.subtotal === 0} onClick={() => run(async () => { await clear(); setPlaced(true); })}>Place demo order</button>
-          <p className="hint">Payments are out of scope for this assignment. Prices and stock are re-checked on the server.</p>
+          <Link className="btn btn-block" to="/checkout" aria-disabled={cart.subtotal === 0}>Proceed to checkout</Link>
+          <p className="hint">Coupons are applied at checkout. Prices and stock are re-checked on the server.</p>
         </aside>
       </div>
     </div>

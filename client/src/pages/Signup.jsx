@@ -39,7 +39,7 @@ export default function Signup() {
 
   return (
     <div className="auth container">
-      <div className="auth-art alt" aria-hidden="true"><p>Make yourself at home.</p><span>An account keeps your cart between visits.</span></div>
+      <div className="auth-art alt" aria-hidden="true"><p>Your style, saved.</p><span>An account keeps your bag and order history in one place.</span></div>
       <form className="auth-card" onSubmit={submit} noValidate>
         <h1>Create your account</h1>
         {error && <p className="notice error" role="alert">{error}</p>}

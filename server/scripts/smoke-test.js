@@ -28,8 +28,8 @@ function check(name, cond, info = '') { if (cond) { pass++; console.log('PASS', 
   let r = await anon('GET', '/api/health'); check('health', r.status === 200);
   r = await anon('GET', '/api/products?limit=3'); check('public product list from DB', r.status === 200 && r.data.products.length > 0 && r.data.total >= 10);
   const first = (await anon('GET', '/api/products?limit=48')).data.products.find((p) => p.stock > 3);
-  r = await anon('GET', '/api/products?q=mug'); check('search by name', r.data.products.length >= 1 && r.data.products.every((p) => /mug/i.test(p.name)));
-  r = await anon('GET', '/api/products?category=ceramics'); check('filter by category', r.data.products.length >= 3 && r.data.products.every((p) => p.category.slug === 'ceramics'));
+  r = await anon('GET', '/api/products?q=trench'); check('search by name', r.data.products.length >= 1 && r.data.products.every((p) => /trench/i.test(p.name)));
+  r = await anon('GET', '/api/products?category=women'); check('filter by category', r.data.products.length >= 3 && r.data.products.every((p) => p.category.slug === 'women'));
   r = await anon('GET', '/api/products?sort=price_asc&limit=20'); const prices = r.data.products.map((p) => p.price); check('sort by price asc', prices.every((p, i) => i === 0 || p >= prices[i - 1]));
   r = await anon('GET', '/api/products?limit=4&page=2'); check('pagination', r.data.page === 2 && r.data.pages >= 3 && r.data.products.length === 4);
   r = await anon('GET', `/api/products/${first._id}`); check('product detail', r.status === 200 && r.data.product.name === first.name && typeof r.data.product.stock === 'number');
@@ -81,7 +81,7 @@ function check(name, cond, info = '') { if (cond) { pass++; console.log('PASS', 
     r = await admin('POST', '/api/admin/uploads', txt); check('non-image type rejected', r.status === 400);
     const big = new FormData(); big.append('image', new Blob([Buffer.alloc(5 * 1024 * 1024, 1)], { type: 'image/png' }), 'big.png');
     r = await admin('POST', '/api/admin/uploads', big); check('oversize image rejected', r.status === 400, JSON.stringify(r.data));
-    const good = new FormData(); good.append('image', new Blob([fs.readFileSync(path.join(__dirname, '../seed-images/mug.jpg'))], { type: 'image/jpeg' }), 'mug.jpg');
+    const good = new FormData(); good.append('image', new Blob([fs.readFileSync(path.join(__dirname, '../../client/public/shop/white-tee.jpg'))], { type: 'image/jpeg' }), 'tee.jpg');
     r = await admin('POST', '/api/admin/uploads', good); check('valid image uploaded to Cloudinary', r.status === 201 && /res\.cloudinary\.com/.test(r.data.image.url), JSON.stringify(r.data));
     if (r.status === 201) {
       const image = r.data.image;
@@ -92,6 +92,41 @@ function check(name, cond, info = '') { if (cond) { pass++; console.log('PASS', 
     r = await anon('GET', `/api/products/${pid}`); check('deleted product is gone (404)', r.status === 404);
     r = await admin('POST', '/api/admin/categories', { name: 'Smoke Cat' }); check('admin create category', r.status === 201);
     if (r.status === 201) { r = await admin('DELETE', `/api/admin/categories/${r.data.category._id}`); check('admin delete empty category', r.status === 200); }
+    // settings, coupons, orders, customers
+    r = await anon('GET', '/api/settings'); check('public settings readable', r.status === 200 && /^#/.test(r.data.settings.colors.primary));
+    r = await cust('PUT', '/api/admin/settings', r.data.settings); check('customer cannot change settings (403)', r.status === 403);
+    const st = (await anon('GET', '/api/settings')).data.settings;
+    r = await admin('PUT', '/api/admin/settings', { ...st, colors: { ...st.colors, accent: 'red' } }); check('settings reject bad colour (400)', r.status === 400);
+    r = await admin('PUT', '/api/admin/settings', { ...st, hero: { ...st.hero, imageUrl: 'https://evil.example/x.jpg' } }); check('settings reject foreign image host (400)', r.status === 400);
+    r = await admin('PUT', '/api/admin/settings', { ...st, colors: { ...st.colors, accent: '#112233' } }); check('admin changes site colour', r.status === 200 && r.data.settings.colors.accent === '#112233');
+    r = await admin('PUT', '/api/admin/settings', st); check('settings restored', r.status === 200 && r.data.settings.colors.accent === st.colors.accent);
+    r = await cust('GET', '/api/admin/orders'); check('customer cannot list admin orders (403)', r.status === 403);
+    r = await cust('GET', '/api/admin/coupons'); check('customer cannot list coupons (403)', r.status === 403);
+    r = await cust('GET', '/api/admin/customers'); check('customer cannot list customers (403)', r.status === 403);
+    r = await admin('POST', '/api/admin/coupons', { code: 'smoke10', type: 'percent', value: 10, minOrder: 0 }); check('admin create coupon', r.status === 201 && r.data.coupon.code === 'SMOKE10');
+    const cid = r.data.coupon && r.data.coupon._id;
+    r = await admin('POST', '/api/admin/coupons', { code: 'SMOKE10', type: 'percent', value: 10 }); check('duplicate coupon rejected (409)', r.status === 409);
+    r = await admin('POST', '/api/admin/coupons', { code: 'BAD', type: 'percent', value: 200 }); check('coupon validation (400)', r.status === 400);
+    const buy = all.find((p) => p.stock > 5 && p.price > 500);
+    await cust('POST', '/api/cart/items', { productId: buy._id, quantity: 2 });
+    r = await cust('POST', '/api/checkout/quote', { couponCode: 'nonexistent' }); check('unknown coupon rejected (400)', r.status === 400);
+    r = await cust('POST', '/api/checkout/quote', { couponCode: 'smoke10' }); check('coupon discount computed server-side', r.status === 200 && r.data.discount === Math.round(buy.price * 2 * 0.1));
+    r = await cust('POST', '/api/orders', { couponCode: '', address: { name: 'T', phone: '1', line1: 'x', city: '', state: '', pincode: 'abc' } }); check('order address validation (400)', r.status === 400 && r.data.fields);
+    const addr = { name: 'Test Buyer', phone: '9876543210', line1: '12 Test Street, Vizag', city: 'Visakhapatnam', state: 'Andhra Pradesh', pincode: '530003' };
+    r = await cust('POST', '/api/orders', { couponCode: 'smoke10', address: addr, total: 1 }); check('place order with coupon', r.status === 201 && r.data.order.status === 'placed' && r.data.order.discount > 0 && r.data.order.total !== 1);
+    const oid = r.data.order && r.data.order._id;
+    r = await cust('GET', '/api/cart'); check('cart cleared after order', r.data.items.length === 0);
+    r = await anon('GET', `/api/products/${buy._id}`); check('stock decremented', r.data.product.stock === buy.stock - 2);
+    r = await cust('GET', '/api/orders'); check('customer sees own order', r.data.orders.length === 1);
+    r = await cust('PATCH', `/api/admin/orders/${oid}/status`, { status: 'shipped' }); check('customer cannot change order status (403)', r.status === 403);
+    r = await admin('GET', '/api/admin/orders?status=placed'); check('admin lists orders', r.status === 200 && r.data.orders.some((o) => o._id === oid));
+    r = await admin('PATCH', `/api/admin/orders/${oid}/status`, { status: 'bogus' }); check('invalid status rejected (400)', r.status === 400);
+    r = await admin('PATCH', `/api/admin/orders/${oid}/status`, { status: 'shipped' }); check('admin updates order status', r.status === 200 && r.data.order.status === 'shipped');
+    r = await admin('PATCH', `/api/admin/orders/${oid}/status`, { status: 'cancelled' }); check('cancel order', r.status === 200);
+    r = await anon('GET', `/api/products/${buy._id}`); check('cancel restores stock', r.data.product.stock === buy.stock);
+    r = await admin('GET', '/api/admin/customers'); check('admin lists customers with order totals', r.status === 200 && r.data.customers.some((c) => c.email === email));
+    r = await admin('GET', '/api/admin/stats'); check('dashboard stats include orders and revenue', typeof r.data.orders === 'number' && typeof r.data.revenue === 'number' && Array.isArray(r.data.recentOrders));
+    if (cid) { r = await admin('DELETE', `/api/admin/coupons/${cid}`); check('admin delete coupon', r.status === 200); }
     r = await admin('DELETE', `/api/admin/categories/${cats[0]._id}`); check('cannot delete category that has products (409)', r.status === 409);
   }
 

@@ -49,3 +49,17 @@ All models live in `server/src/models`.
 | POST/PUT/DELETE /api/admin/categories | admin | manage categories |
 | POST /api/admin/uploads | admin | image upload to Cloudinary |
 | GET /api/admin/stats | admin | dashboard counts |
+
+## Order
+number (unique), user, items[{product, name, image, price, quantity, lineTotal}], subtotal, discount, couponCode, shipping, total, status (placed, processing, shipped, delivered, cancelled), paymentMethod, address{name, phone, line1, city, state, pincode}, createdAt, updatedAt.
+
+## Coupon
+code (unique), description, type (percent or fixed), value, minOrder, usageLimit (0 = unlimited), used, expiresAt, active.
+
+## Setting (single document, key "site")
+storeName, colors{primary, accent, background}, hero{eyebrow, title, text, buttonText, buttonLink, imageUrl}, offer{enabled, eyebrow, title, text, buttonText, buttonLink, imageUrl}.
+
+## Added API routes
+- Public: GET /api/settings
+- Customer: POST /api/checkout/quote, POST /api/orders, GET /api/orders
+- Admin: PUT /api/admin/settings, GET /api/admin/orders, PATCH /api/admin/orders/:id/status, GET /api/admin/customers, GET/POST/PUT/DELETE /api/admin/coupons

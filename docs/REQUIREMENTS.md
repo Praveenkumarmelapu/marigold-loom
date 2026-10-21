@@ -3,7 +3,7 @@
 Status is verified against the running app (API smoke tests plus browser tests). "Live" items are re-verified on the Vercel deployment.
 
 ## 1. Landing page and design
-- [x] Custom brand identity, logo, colors, typography (Marigold Loom, indigo/clay/marigold, Fraunces + Hanken Grotesk)
+- [x] Custom brand identity, logo, colors, typography (Marigold Atelier, black/ruby/ivory, Cormorant Garamond + Jost)
 - [x] Header with navigation, search, login/signup, cart icon
 - [x] Hero with custom headline, imagery, CTA
 - [x] Featured products and product categories
@@ -71,3 +71,9 @@ Status is verified against the running app (API smoke tests plus browser tests).
 
 ## 11. Deployment and submission
 - [x] Live URL, GitHub repo, admin and customer demo credentials (shared privately), README, schema docs, architecture notes, AI disclosure, testing confirmation
+
+## 12. Fashion store extensions (client request)
+- [x] Fashion catalogue: 20 products in Women, Men, Footwear, Accessories
+- [x] Admin: dashboard, products, categories, orders, coupons, customers, settings
+- [x] Checkout with address, coupon codes and order creation (stock reserved, restored on cancel)
+- [x] Admin settings: site colours, hero banner, offer banner (stored in DB, applied storefront-wide)

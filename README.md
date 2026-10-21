@@ -1,6 +1,6 @@
-# Marigold Loom
+# Marigold Atelier
 
-A full-stack e-commerce web app for a fictional handloom and stoneware brand. Built for the nevulTAR fresher web developer assignment.
+A full-stack e-commerce web app for a fictional fashion brand (women, men, footwear, accessories). Built for the nevulTAR fresher web developer assignment.
 
 - **Frontend:** React 18 (Vite), React Router, plain CSS with a custom design system
 - **Backend:** Node.js + Express 4, validation with Zod
@@ -12,13 +12,15 @@ Live site: see `LIVE_URL` in the submission message. Admin and customer demo cre
 
 ## Features
 
-- Custom brand (Marigold Loom): logo, colour palette (indigo, clay, marigold, cream), Fraunces + Hanken Grotesk type, hand-built layout
+- Custom brand (Marigold Atelier): logo, editorial black, ruby and ivory palette, Cormorant Garamond + Jost type, hand-built layout
 - Landing page: header with navigation, search, login/signup and cart icons, hero with CTA, categories, featured products, new arrivals, promo band, footer with links and contact details
 - Customer signup, login, logout with validation messages, bcrypt password hashing, HttpOnly cookie session (JWT)
 - Product listing from the database with search by name, category filter, in-stock filter, sorting (newest, price, name) and pagination
 - Product detail with large image, price, description, category, stock status, add to cart, link back to the listing
 - Server-side cart: add, increase/decrease, remove, subtotals and total. Prices and stock are read from the database on every request
-- Admin dashboard (`/admin`) with product create, read, update, delete (with a confirmation dialog), search and category filter, category management, and Cloudinary image upload
+- Checkout with delivery address, coupon codes (server-validated) and cash on delivery; order history in the customer account
+- Admin area (`/admin`): dashboard (revenue, orders, best sellers), products (create, read, update, delete with confirmation, search, category filter, Cloudinary upload), categories, order management (status updates, cancel with stock restore), coupons, customers, and settings
+- Settings let the admin change the site colours, the hero banner (text, button, image) and the offer banner, all stored in MongoDB and applied storefront-wide
 - Loading, empty, error and success states, responsive from 360px to desktop, keyboard focus styles, skip link, labelled forms
 
 ## Project structure
@@ -27,8 +29,8 @@ Live site: see `LIVE_URL` in the submission message. Admin and customer demo cre
 api/index.js            Vercel serverless entry (wraps the Express app)
 server/src/
   config/               env, MongoDB connection (cached for serverless), Cloudinary
-  models/               User, Category, Product, Cart
-  controllers/          auth, products, categories, cart, uploads, stats
+  models/               User, Category, Product, Cart, Order, Coupon, Setting
+  controllers/          auth, products, categories, cart, orders, coupons, settings, uploads, stats
   routes/index.js       all routes, with auth and admin guards
   middleware/           auth (JWT cookie), validate (Zod), upload (multer), errorHandler
   utils/                sanitize, asyncHandler, HttpError
@@ -112,3 +114,7 @@ Automated: 47 API checks (`npm run test:api`). Browser checks with Playwright on
 ## AI tools disclosure
 
 This project was built with the help of an AI coding agent (Claude-based) acting for the candidate, plus an AI image model for the product photos, which are generated images and not real products. The candidate reviewed the result and can explain the architecture, API endpoints, models, authentication and authorization. The checklist of assignment requirements is in `docs/REQUIREMENTS.md`.
+
+## Fashion catalogue images
+
+Product photos in `client/public/shop` are sample stock photographs from Unsplash (Unsplash licence). Replace them with your own photography, or upload new images per product in the admin.
