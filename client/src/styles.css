@@ -362,6 +362,7 @@ h2 { font-size: clamp(1.9rem, 3vw, 2.6rem); }
 .hc-slide img { position: absolute; inset: 0; }
 .hc-scrim { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(8,8,10,.78) 0%, rgba(8,8,10,.42) 46%, rgba(8,8,10,0) 78%), linear-gradient(0deg, rgba(8,8,10,.5) 0%, rgba(8,8,10,0) 42%); }
 .hc-content { position: relative; z-index: 2; height: 100%; min-height: inherit; display: flex; flex-direction: column; justify-content: flex-end; align-items: flex-start; padding-bottom: 5rem; color: #fff; }
+@media (min-width: 721px) { .hc-content { padding-inline: 3.4rem; } }
 .hc-content .eyebrow { margin-bottom: .9rem; }
 .hc-title { font-family: var(--serif); font-weight: 600; font-size: clamp(2.3rem, 5vw, 4.2rem); line-height: 1.04; letter-spacing: 0; margin: 0; max-width: 15ch; color: #fff; }
 .hc-text { margin: 1.1rem 0 1.9rem; max-width: 32rem; font-size: 1.08rem; line-height: 1.55; color: rgba(255,255,255,.88); }
