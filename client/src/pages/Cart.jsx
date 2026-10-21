@@ -1,0 +1,73 @@
+import { useState } from 'react';
+import { Link } from 'react-router-dom';
+import { img, money } from '../lib/api';
+import { useCart } from '../context/CartContext.jsx';
+import { SHIPPING_FREE_OVER } from '../lib/brand';
+import Spinner from '../components/Spinner.jsx';
+
+export default function Cart() {
+  const { cart, loading, setQty, remove, clear } = useCart();
+  const [error, setError] = useState('');
+  const [placed, setPlaced] = useState(false);
+
+  const run = async (fn) => { setError(''); try { await fn(); } catch (e) { setError(e.message); } };
+
+  if (loading && cart.items.length === 0) return <Spinner />;
+  const shipping = cart.subtotal === 0 || cart.subtotal >= SHIPPING_FREE_OVER ? 0 : 99;
+
+  if (placed) return (
+    <div className="container state-box">
+      <h1>Thank you</h1>
+      <p>This is a demo store, so no order or payment was created. Your cart has been cleared.</p>
+      <Link className="btn" to="/shop">Keep browsing</Link>
+    </div>
+  );
+
+  if (cart.items.length === 0) return (
+    <div className="container state-box">
+      <h1>Your cart is empty</h1>
+      <p>Nothing here yet. The indigo throw is a good place to start.</p>
+      <Link className="btn" to="/shop">Go to the shop</Link>
+    </div>
+  );
+
+  return (
+    <div className="container cart">
+      <h1>Your cart</h1>
+      {error && <p className="notice error" role="alert">{error}</p>}
+      {cart.notices.map((n) => <p key={n} className="notice warn">{n}. Quantities were adjusted.</p>)}
+      <div className="cart-layout">
+        <ul className="cart-list">
+          {cart.items.map((it) => (
+            <li key={it.productId} className={`cart-row ${it.available ? '' : 'unavailable'}`}>
+              <Link to={`/product/${it.productId}`} className="cart-img">{it.image && <img src={img(it.image, 240)} alt="" />}</Link>
+              <div className="cart-info">
+                <Link to={`/product/${it.productId}`}><h3>{it.name}</h3></Link>
+                <span className="muted">{money(it.price)} each</span>
+                {!it.available && <span className="stock out">Sold out, remove to continue</span>}
+                <button className="text-btn" onClick={() => run(() => remove(it.productId))}>Remove</button>
+              </div>
+              <div className="stepper" role="group" aria-label={`Quantity for ${it.name}`}>
+                <button aria-label="Decrease quantity" disabled={it.quantity <= 1} onClick={() => run(() => setQty(it.productId, it.quantity - 1))}>&minus;</button>
+                <span aria-live="polite">{it.quantity}</span>
+                <button aria-label="Increase quantity" disabled={it.quantity >= it.stock || it.quantity >= 20} onClick={() => run(() => setQty(it.productId, it.quantity + 1))}>+</button>
+              </div>
+              <strong className="line-total">{money(it.lineTotal)}</strong>
+            </li>
+          ))}
+        </ul>
+        <aside className="summary" aria-label="Order summary">
+          <h2>Summary</h2>
+          <dl>
+            <div><dt>Subtotal</dt><dd>{money(cart.subtotal)}</dd></div>
+            <div><dt>Shipping</dt><dd>{shipping === 0 ? 'Free' : money(shipping)}</dd></div>
+            <div className="total"><dt>Total</dt><dd>{money(cart.subtotal + shipping)}</dd></div>
+          </dl>
+          {shipping > 0 && <p className="hint">Add {money(SHIPPING_FREE_OVER - cart.subtotal)} more for free shipping.</p>}
+          <button className="btn btn-block" disabled={cart.subtotal === 0} onClick={() => run(async () => { await clear(); setPlaced(true); })}>Place demo order</button>
+          <p className="hint">Payments are out of scope for this assignment. Prices and stock are re-checked on the server.</p>
+        </aside>
+      </div>
+    </div>
+  );
+}
