@@ -9,7 +9,7 @@ export default function Footer() {
       <div className="selvedge" aria-hidden="true" />
       <div className="container footer-grid">
         <div>
-          <div className="brand footer-brand"><Logo size={30} /><span>{settings.storeName}</span></div>
+          <div className="brand footer-brand"><Logo size={30} /><span className="brand-text"><span className="brand-name">{settings.storeName}</span><small className="brand-tag">Everyday elegance</small></span></div>
           <p className="muted-light">Contemporary fashion for women and men, designed in Visakhapatnam and made to be worn on repeat.</p>
         </div>
         <div>
@@ -35,7 +35,7 @@ export default function Footer() {
           <h3>Visit and write</h3>
           <address>
             Studio 4, Fashion Street<br />Visakhapatnam, Andhra Pradesh 530003<br />
-            <a href="mailto:hello@marigoldatelier.example">hello@marigoldatelier.example</a><br />
+            <a href="mailto:hello@zaviro.example">hello@zaviro.example</a><br />
             Mon to Sat, 10am to 6pm IST
           </address>
         </div>

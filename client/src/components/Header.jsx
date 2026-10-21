@@ -34,7 +34,7 @@ export default function Header() {
         </button>
         <Link to="/" className="brand" onClick={close} aria-label={`${settings.storeName} home`}>
           <Logo />
-          <span>{settings.storeName}</span>
+          <span className="brand-text"><span className="brand-name">{settings.storeName}</span><small className="brand-tag">Everyday elegance</small></span>
         </Link>
         <nav className={`nav ${open ? 'open' : ''}`} aria-label="Main">
           <NavLink to="/shop" end onClick={close} className={() => (loc.pathname === '/shop' && !loc.search.includes('category=') ? 'active' : '')}>Shop all</NavLink>

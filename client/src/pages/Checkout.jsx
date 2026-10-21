@@ -77,7 +77,17 @@ export default function Checkout() {
           </div>
           <Field label="PIN code" error={errors.pincode}><input inputMode="numeric" maxLength={6} autoComplete="postal-code" {...f('pincode')} /></Field>
           <h2>Payment</h2>
-          <p className="muted">Cash on delivery. No card details are collected in this demo store.</p>
+          <fieldset className="pay-methods">
+            <legend className="sr">Payment method</legend>
+            <label className="pay-option">
+              <input type="radio" name="paymentMethod" value="cod" checked readOnly />
+              <span className="pay-option-body">
+                <strong>Cash on Delivery (COD)</strong>
+                <small>Our standard payment method. Pay in cash when your order arrives at your door - no card details, no advance payment.</small>
+              </span>
+              <span className="pay-badge">Standard</span>
+            </label>
+          </fieldset>
           <button className="btn btn-block" disabled={busy}>{busy ? 'Placing order...' : `Place order${quote ? ` - ${money(quote.total)}` : ''}`}</button>
         </form>
         <aside className="summary" aria-label="Order summary">

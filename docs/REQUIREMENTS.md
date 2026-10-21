@@ -3,7 +3,7 @@
 Status is verified against the running app (API smoke tests plus browser tests). "Live" items are re-verified on the Vercel deployment.
 
 ## 1. Landing page and design
-- [x] Custom brand identity, logo, colors, typography (Marigold Atelier, black/ruby/ivory, Cormorant Garamond + Jost)
+- [x] Custom brand identity, logo, colors, typography (ZAVIRO, black/ruby/ivory, Cormorant Garamond + Jost)
 - [x] Header with navigation, search, login/signup, cart icon
 - [x] Hero with custom headline, imagery, CTA
 - [x] Featured products and product categories

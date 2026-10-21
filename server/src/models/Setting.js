@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const settingSchema = new mongoose.Schema(
   {
     key: { type: String, required: true, unique: true, default: 'site' },
-    storeName: { type: String, default: 'Marigold Atelier' },
+    storeName: { type: String, default: 'ZAVIRO' },
     colors: {
       primary: { type: String, default: '#141414' },
       accent: { type: String, default: '#b3263e' },

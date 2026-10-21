@@ -1,4 +1,4 @@
-# Marigold Atelier
+# ZAVIRO
 
 A full-stack e-commerce web app for a fictional fashion brand (women, men, footwear, accessories). Built for the nevulTAR fresher web developer assignment.
 
@@ -12,7 +12,7 @@ Live site: see `LIVE_URL` in the submission message. Admin and customer demo cre
 
 ## Features
 
-- Custom brand (Marigold Atelier): logo, editorial black, ruby and ivory palette, Cormorant Garamond + Jost type, hand-built layout
+- Custom brand (ZAVIRO): caps wordmark with "Everyday elegance" tagline, editorial black, ruby and ivory palette, Cormorant Garamond + Jost type, hand-built layout
 - Landing page: header with navigation, search, login/signup and cart icons, hero with CTA, categories, featured products, new arrivals, promo band, footer with links and contact details
 - Customer signup, login, logout with validation messages, bcrypt password hashing, HttpOnly cookie session (JWT)
 - Product listing from the database with search by name, category filter, in-stock filter, sorting (newest, price, name) and pagination
