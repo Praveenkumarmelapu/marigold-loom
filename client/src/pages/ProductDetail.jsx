@@ -1,17 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { api, img, money } from '../lib/api';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useCart } from '../context/CartContext.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
 import Spinner from '../components/Spinner.jsx';
+import HeartButton from '../components/HeartButton';
+import { stored,save } from '../lib/storage';
 
 export default function ProductDetail() {
   const { id } = useParams();
   const { user } = useAuth();
-  const { add } = useCart();
-  const nav = useNavigate();
-  const loc = useLocation();
+  const { add, loading: cartLoading } = useCart();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
   const [active, setActive] = useState(0);
@@ -21,7 +21,7 @@ export default function ProductDetail() {
 
   useEffect(() => {
     setData(null); setError(''); setActive(0); setQty(1); setMsg('');
-    api.get(`/products/${id}`).then(setData).catch((e) => setError(e.status === 404 || e.status === 400 ? 'We could not find that product.' : e.message));
+    api.get(`/products/${id}`).then(d => { setData(d); save('zaviro-recent', [d.product, ...stored('zaviro-recent').filter(p=>p._id!==id)].slice(0,8)); }).catch((e) => setError(e.status === 404 || e.status === 400 ? 'We could not find that product.' : e.message));
   }, [id]);
 
   if (error) return <div className="container state-box"><h1>Product not found</h1><p>{error}</p><Link className="btn" to="/shop">Back to the shop</Link></div>;
@@ -31,7 +31,6 @@ export default function ProductDetail() {
   const maxQty = Math.min(p.stock, 10);
 
   const addToCart = async () => {
-    if (!user) return nav('/login', { state: { from: loc.pathname } });
     setBusy(true); setMsg('');
     try { await add(p._id, qty); } catch (e) { setMsg(e.message); } finally { setBusy(false); }
   };
@@ -69,9 +68,10 @@ export default function ProductDetail() {
                 {Array.from({ length: Math.max(maxQty, 1) }, (_, i) => i + 1).map((n) => <option key={n}>{n}</option>)}
               </select>
             </label>
-            <button className="btn btn-lg" disabled={out || busy} onClick={addToCart}>{out ? 'Sold out' : busy ? 'Adding...' : 'Add to cart'}</button>
+            <button className="btn btn-lg" disabled={out || busy || cartLoading} onClick={addToCart}>{out ? 'Sold out' : busy ? 'Adding...' : 'Add to cart'}</button>
+          <HeartButton product={p} />
           </div>
-          {!user && !out && <p className="hint">You will be asked to log in so your cart is saved.</p>}
+          {!user && !out && <p className="hint">Add to your bag now. Log in only when you are ready to check out.</p>}
           {msg && <p className="notice error" role="alert">{msg}</p>}
           <ul className="pdp-facts">
             <li>Free shipping over &#8377;2,500</li>

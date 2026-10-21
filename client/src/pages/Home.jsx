@@ -1,3 +1,4 @@
+import RecentlyViewed from '../components/RecentlyViewed';
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { api, img } from '../lib/api';
@@ -97,6 +98,7 @@ export default function Home() {
           <p>Order by 4pm for dispatch the same day. If the fit is off, send it back within seven days for an exchange or a refund.</p>
         </div>
       </section>
-    </>
+    <RecentlyViewed />
+</>
   );
 }

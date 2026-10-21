@@ -7,6 +7,7 @@ const auth = require('../controllers/authController');
 const products = require('../controllers/productController');
 const categories = require('../controllers/categoryController');
 const cart = require('../controllers/cartController');
+const wishlist = require('../controllers/wishlistController');
 const uploads = require('../controllers/uploadController');
 const settings = require('../controllers/settingsController');
 const coupons = require('../controllers/couponController');
@@ -37,6 +38,10 @@ router.get('/products/:id', products.getOne);
 router.get('/categories', categories.list);
 
 // Customer cart
+router.get('/wishlist', requireAuth, wishlist.get);
+router.post('/wishlist', requireAuth, validate(wishlist.schema), wishlist.merge);
+router.delete('/wishlist/:id', requireAuth, wishlist.remove);
+router.post('/cart/merge', requireAuth, validate(cart.mergeSchema), cart.merge);
 router.get('/cart', requireAuth, cart.getCart);
 router.post('/cart/items', requireAuth, validate(cart.addSchema), cart.addItem);
 router.patch('/cart/items/:productId', requireAuth, validate(cart.setSchema), cart.setQuantity);

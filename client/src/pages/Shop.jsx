@@ -57,7 +57,7 @@ export default function Shop() {
         <aside className="filters" aria-label="Filters">
           <form onSubmit={(e) => { e.preventDefault(); update({ q: text.trim() }); }} role="search">
             <label className="field"><span className="field-label">Search by name</span>
-              <input type="search" value={text} onChange={(e) => setText(e.target.value)} placeholder="Mug, throw, vase" />
+              <input type="search" value={text} onChange={(e) => setText(e.target.value)} placeholder="Dress, tee, bag" />
             </label>
             <button className="btn btn-small btn-block">Search</button>
           </form>

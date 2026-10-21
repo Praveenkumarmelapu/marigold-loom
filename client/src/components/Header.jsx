@@ -1,6 +1,8 @@
 import { useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import Logo from './Logo.jsx';
+import { HeartIcon } from './HeartButton';
+import { useWishlist } from '../context/WishlistContext';
 import { SearchIcon, UserIcon, BagIcon, MenuIcon, CloseIcon } from './Icons.jsx';
 import { useAuth } from '../context/AuthContext.jsx';
 import { useSettings } from '../context/SettingsContext.jsx';
@@ -9,6 +11,7 @@ import { useCart } from '../context/CartContext.jsx';
 export default function Header() {
   const { user, logout } = useAuth();
   const { cart } = useCart();
+  const { products: wishes } = useWishlist();
   const { settings } = useSettings();
   const nav = useNavigate();
   const loc = useLocation();
@@ -64,6 +67,7 @@ export default function Header() {
               <Link to="/signup" className="btn btn-small hide-sm">Sign up</Link>
             </>
           )}
+          <Link to="/wishlist" className="icon-link wishlist-link" aria-label={`Wishlist, ${wishes.length} items`}><HeartIcon />{wishes.length > 0 && <span className="badge-count">{wishes.length}</span>}</Link>
           <Link to="/cart" className="icon-link cart-link" aria-label={`Cart, ${cart.count} items`}>
             <BagIcon />
             {cart.count > 0 && <span className="badge-count">{cart.count}</span>}

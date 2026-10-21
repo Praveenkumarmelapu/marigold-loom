@@ -8,7 +8,7 @@ import Spinner from '../components/Spinner.jsx';
 const EMPTY = { name: '', phone: '', line1: '', city: '', state: '', pincode: '' };
 
 export default function Checkout() {
-  const { cart, loading, refresh } = useCart();
+  const { cart, loading, refresh, syncError } = useCart();
   const [addr, setAddr] = useState(EMPTY);
   const [code, setCode] = useState('');
   const [applied, setApplied] = useState('');
@@ -20,10 +20,10 @@ export default function Checkout() {
   const [order, setOrder] = useState(null);
 
   const loadQuote = async (c) => {
-    try { setQuote(await api.post('/checkout/quote', { couponCode: c })); return true; }
+    try { setQuote(await api.post('/checkout/quote', { couponCode: c })); setCouponMsg(''); return true; }
     catch (e) { setCouponMsg(e.message); return false; }
   };
-  useEffect(() => { if (cart.items.length && !order) loadQuote(applied); /* eslint-disable-next-line */ }, [cart.subtotal, applied]);
+  useEffect(() => { if (!loading && cart.items.length && !order) loadQuote(applied); /* eslint-disable-next-line */ }, [cart.subtotal, applied, loading]);
 
   const apply = async (e) => {
     e.preventDefault(); setCouponMsg('');
@@ -57,7 +57,8 @@ export default function Checkout() {
       <div className="row-gap"><Link className="btn" to="/account">View my orders</Link><Link className="btn btn-ghost" to="/shop">Keep shopping</Link></div>
     </div>
   );
-  if (loading && cart.items.length === 0) return <Spinner />;
+  if (loading) return <Spinner />;
+  if (syncError) return <div className="container state-box"><h1>Let us sync your cart first</h1><p role="alert">{syncError}</p><button className="btn" onClick={refresh}>Retry</button></div>;
   if (cart.items.length === 0) return <Navigate to="/cart" replace />;
   const f = (k) => ({ value: addr[k], onChange: (e) => setAddr({ ...addr, [k]: e.target.value }) });
 

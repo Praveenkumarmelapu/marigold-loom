@@ -6,7 +6,7 @@ import { SHIPPING_FREE_OVER } from '../lib/brand';
 import Spinner from '../components/Spinner.jsx';
 
 export default function Cart() {
-  const { cart, loading, setQty, remove } = useCart();
+  const { cart, loading, setQty, remove, syncError, refresh } = useCart();
   const [error, setError] = useState('');
 
   const run = async (fn) => { setError(''); try { await fn(); } catch (e) { setError(e.message); } };
@@ -25,6 +25,8 @@ export default function Cart() {
   return (
     <div className="container cart">
       <h1>Your cart</h1>
+      {syncError && <p className="notice error" role="alert">{syncError} <button className="text-btn" onClick={refresh}>Retry syncing cart</button></p>}
+      <div className="shipping-progress"><p>{shipping > 0 ? <>You are <strong>{money(SHIPPING_FREE_OVER-cart.subtotal)}</strong> away from free shipping.</> : 'Your order qualifies for free shipping.'}</p><progress aria-label="Progress toward free shipping" max={SHIPPING_FREE_OVER} value={Math.min(cart.subtotal,SHIPPING_FREE_OVER)}/></div>
       {error && <p className="notice error" role="alert">{error}</p>}
       {cart.notices.map((n) => <p key={n} className="notice warn">{n}. Quantities were adjusted.</p>)}
       <div className="cart-layout">

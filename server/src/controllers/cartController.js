@@ -91,4 +91,19 @@ const clear = asyncHandler(async (req, res) => {
   res.json(await present(null));
 });
 
-module.exports = { addSchema, setSchema, getCart, addItem, setQuantity, removeItem, clear };
+// Idempotent guest merge: preserve the larger quantity, never double it on retries.
+const mergeSchema = z.object({ items: z.array(addSchema).max(100) });
+const merge = asyncHandler(async (req, res) => {
+ const cart = (await Cart.findOne({ user: req.user._id })) || new Cart({ user: req.user._id, items: [] });
+ const notices = [];
+ for (const it of req.body.items) {
+  const p = await Product.findById(it.productId);
+  if (!p || !p.stock) { notices.push('An unavailable guest item could not be added.'); continue; }
+  const line = cart.items.find(i => i.product.equals(p._id));
+  const quantity = Math.min(Math.max(line ? line.quantity : 0, it.quantity), p.stock, MAX_QTY);
+  if (line) line.quantity = quantity; else cart.items.push({ product: p._id, quantity });
+ }
+ await cart.save();
+ const result = await present(cart); result.notices.push(...notices); res.json(result);
+});
+module.exports = { addSchema, setSchema, mergeSchema, merge, getCart, addItem, setQuantity, removeItem, clear };
