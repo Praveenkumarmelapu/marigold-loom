@@ -15,6 +15,7 @@ export default function ProductForm({ product, categories, onClose, onSaved }) {
     badge: product ? product.badge || '' : '',
     featured: product ? product.featured : false,
   });
+  const [sizes, setSizes] = useState(product && product.sizes ? product.sizes.map((s) => ({ label: s.label, stock: String(s.stock) })) : []);
   const [images, setImages] = useState(product ? product.images : []);
   const [errors, setErrors] = useState({});
   const [error, setError] = useState('');
@@ -46,7 +47,8 @@ export default function ProductForm({ product, categories, onClose, onSaved }) {
     if (form.name.trim().length < 2) er.name = 'Name must be at least 2 characters';
     if (form.description.trim().length < 10) er.description = 'Description must be at least 10 characters';
     if (form.price === '' || Number(form.price) < 0 || Number.isNaN(Number(form.price))) er.price = 'Enter a valid price';
-    if (form.stock === '' || !Number.isInteger(Number(form.stock)) || Number(form.stock) < 0) er.stock = 'Stock must be a whole number, 0 or more';
+    if (sizes.some((s) => !s.label.trim())) er.stock = 'Every size needs a name';
+    if (!sizes.length && (form.stock === '' || !Number.isInteger(Number(form.stock)) || Number(form.stock) < 0)) er.stock = 'Stock must be a whole number, 0 or more';
     if (!form.category) er.category = 'Choose a category';
     setErrors(er);
     return Object.keys(er).length === 0;
@@ -57,7 +59,7 @@ export default function ProductForm({ product, categories, onClose, onSaved }) {
     setError('');
     if (!validate()) return;
     setBusy(true);
-    const body = { ...form, price: Number(form.price), stock: Number(form.stock), images };
+    const body = { ...form, price: Number(form.price), stock: sizes.length ? sizes.reduce((s, x) => s + (Number(x.stock) || 0), 0) : Number(form.stock), images, sizes: sizes.map((s) => ({ label: s.label.trim(), stock: Number(s.stock) || 0 })) };
     try {
       if (product) await api.put(`/admin/products/${product._id}`, body);
       else await api.post('/admin/products', body);
@@ -77,7 +79,7 @@ export default function ProductForm({ product, categories, onClose, onSaved }) {
         <Field label="Description" error={errors.description}><textarea rows={4} value={form.description} onChange={set('description')} maxLength={2000} /></Field>
         <div className="two">
           <Field label="Price (INR)" error={errors.price}><input inputMode="decimal" value={form.price} onChange={set('price')} /></Field>
-          <Field label="Stock quantity" error={errors.stock}><input inputMode="numeric" value={form.stock} onChange={set('stock')} /></Field>
+          <Field label="Stock quantity" error={errors.stock}><input inputMode="numeric" value={sizes.length ? String(sizes.reduce((s, x) => s + (Number(x.stock) || 0), 0)) : form.stock} onChange={set('stock')} disabled={sizes.length > 0} /></Field>
         </div>
         <div className="two">
           <Field label="Category" error={errors.category}>
@@ -87,6 +89,21 @@ export default function ProductForm({ product, categories, onClose, onSaved }) {
             </select>
           </Field>
           <Field label="Badge (optional)" error={errors.badge}><input value={form.badge} onChange={set('badge')} maxLength={30} placeholder="New, Bestseller" /></Field>
+        </div>
+        <div className="size-editor">
+          <span className="field-label">Sizes and stock per size (optional)</span>
+          {sizes.map((s, i) => (
+            <div key={i} className="size-row">
+              <input aria-label={`Size ${i + 1} name`} placeholder="S, M, 42..." maxLength={12} value={s.label} onChange={(e) => setSizes(sizes.map((x, j) => (j === i ? { ...x, label: e.target.value } : x)))} />
+              <input aria-label={`Stock for size ${s.label || i + 1}`} inputMode="numeric" placeholder="Stock" value={s.stock} onChange={(e) => setSizes(sizes.map((x, j) => (j === i ? { ...x, stock: e.target.value } : x)))} />
+              <button type="button" className="text-btn" onClick={() => setSizes(sizes.filter((_, j) => j !== i))}>Remove</button>
+            </div>
+          ))}
+          <div className="row-gap">
+            <button type="button" className="btn btn-ghost btn-small" disabled={sizes.length >= 12} onClick={() => setSizes([...sizes, { label: '', stock: '' }])}>+ Add size</button>
+            {sizes.length === 0 && <button type="button" className="text-btn" onClick={() => setSizes(['S', 'M', 'L', 'XL'].map((l) => ({ label: l, stock: '' })))}>Use S / M / L / XL</button>}
+          </div>
+          <span className="hint">{sizes.length ? 'Total stock is the sum of all sizes.' : 'Leave empty for one-size products. The stock field above is used.'}</span>
         </div>
         <label className="check"><input type="checkbox" checked={form.featured} onChange={(e) => setForm({ ...form, featured: e.target.checked })} /> Feature on the home page</label>
 

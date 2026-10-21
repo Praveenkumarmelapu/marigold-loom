@@ -6,6 +6,7 @@ const cloudinary = require('../config/cloudinary');
 const HttpError = require('../utils/httpError');
 const asyncHandler = require('../utils/asyncHandler');
 const { safeString, escapeRegex } = require('../utils/sanitize');
+const { totalStock } = require('../utils/stock');
 
 const SORTS = {
   newest: { createdAt: -1 },
@@ -42,6 +43,7 @@ const productSchema = z.object({
   category: z.string().regex(/^[a-f\d]{24}$/i, 'Choose a category'),
   stock: z.coerce.number().int('Stock must be a whole number').min(0, 'Stock cannot be negative').max(100000),
   images: z.array(imageInput).max(6, 'At most 6 images').optional().default([]),
+  sizes: z.array(z.object({ label: safeString(1, 12, 'Size'), stock: z.coerce.number().int().min(0).max(100000) })).max(12).optional().default([]).refine((a) => new Set(a.map((s) => s.label.toLowerCase())).size === a.length, 'Size names must be different'),
   featured: z.boolean().optional().default(false),
   badge: safeString(0, 30, 'Badge').optional().default(''),
 });
@@ -49,7 +51,16 @@ const productSchema = z.object({
 function buildFilter(q) {
   return (async () => {
     const filter = {};
-    if (q.q) filter.name = { $regex: escapeRegex(q.q), $options: 'i' };
+    if (q.q) {
+      // Every word must appear in the name, description, badge or category name.
+      const words = q.q.split(/\s+/).filter(Boolean).slice(0, 6);
+      const cats = await Category.find({ name: { $regex: words.map(escapeRegex).join('|'), $options: 'i' } }).select('_id name');
+      filter.$and = words.map((w) => {
+        const rx = { $regex: escapeRegex(w), $options: 'i' };
+        const catIds = cats.filter((c) => new RegExp(escapeRegex(w), 'i').test(c.name)).map((c) => c._id);
+        return { $or: [{ name: rx }, { description: rx }, { badge: rx }, ...(catIds.length ? [{ category: { $in: catIds } }] : [])] };
+      });
+    }
     if (q.category) {
       const cat = await Category.findOne({ slug: q.category }).select('_id');
       filter.category = cat ? cat._id : new mongoose.Types.ObjectId();
@@ -80,6 +91,20 @@ const list = asyncHandler(async (req, res) => {
   res.json({ products: items, page: q.page, limit: q.limit, total, pages: Math.max(1, Math.ceil(total / q.limit)) });
 });
 
+const suggest = asyncHandler(async (req, res) => {
+  const q = String(req.query.q || '').trim().slice(0, 60);
+  if (q.length < 1) return res.json({ products: [], categories: [], total: 0 });
+  const parsed = listQuerySchema.parse({ q });
+  const filter = await buildFilter(parsed);
+  const rx = new RegExp(escapeRegex(q), 'i');
+  const [items, total, categories] = await Promise.all([
+    Product.find(filter).populate('category', 'name slug').select('name price images category stock sizes').sort({ featured: -1, createdAt: -1 }).limit(6).lean(),
+    Product.countDocuments(filter),
+    Category.find({ name: rx }).select('name slug').limit(3).lean(),
+  ]);
+  res.json({ products: items.map((p) => ({ _id: p._id, name: p.name, price: p.price, image: p.images[0] ? p.images[0].url : null, category: p.category, soldOut: p.stock === 0 })), categories, total });
+});
+
 const getOne = asyncHandler(async (req, res) => {
   const product = await Product.findById(req.params.id).populate('category', 'name slug').lean();
   if (!product) throw new HttpError(404, 'Product not found');
@@ -92,6 +117,7 @@ const getOne = asyncHandler(async (req, res) => {
 
 const create = asyncHandler(async (req, res) => {
   if (!(await Category.exists({ _id: req.body.category }))) throw new HttpError(400, 'Category does not exist', { category: 'Choose a category' });
+  if (req.body.sizes.length) req.body.stock = totalStock(req.body.sizes);
   const product = await Product.create(req.body);
   res.status(201).json({ product: await product.populate('category', 'name slug') });
 });
@@ -102,6 +128,7 @@ const update = asyncHandler(async (req, res) => {
   if (!existing) throw new HttpError(404, 'Product not found');
   const keep = new Set(req.body.images.map((i) => i.publicId).filter(Boolean));
   const removed = existing.images.filter((i) => i.publicId && !keep.has(i.publicId));
+  if (req.body.sizes.length) req.body.stock = totalStock(req.body.sizes);
   existing.set(req.body);
   await existing.save();
   destroyImages(removed);
@@ -124,4 +151,4 @@ function destroyImages(images) {
   }
 }
 
-module.exports = { listQuerySchema, productSchema, list, getOne, create, update, remove };
+module.exports = { suggest, listQuerySchema, productSchema, list, getOne, create, update, remove };

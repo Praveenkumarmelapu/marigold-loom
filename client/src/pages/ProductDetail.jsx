@@ -7,6 +7,9 @@ import ProductGrid from '../components/ProductGrid.jsx';
 import Spinner from '../components/Spinner.jsx';
 import HeartButton from '../components/HeartButton';
 import { stored,save } from '../lib/storage';
+import SizePicker from '../components/SizePicker.jsx';
+import Stars from '../components/Stars.jsx';
+import Reviews from '../components/Reviews.jsx';
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -18,9 +21,11 @@ export default function ProductDetail() {
   const [qty, setQty] = useState(1);
   const [msg, setMsg] = useState('');
   const [busy, setBusy] = useState(false);
+  const [size, setSize] = useState('');
+  const [sizeErr, setSizeErr] = useState('');
 
   useEffect(() => {
-    setData(null); setError(''); setActive(0); setQty(1); setMsg('');
+    setData(null); setError(''); setActive(0); setQty(1); setMsg(''); setSize(''); setSizeErr('');
     api.get(`/products/${id}`).then(d => { setData(d); save('zaviro-recent', [d.product, ...stored('zaviro-recent').filter(p=>p._id!==id)].slice(0,8)); }).catch((e) => setError(e.status === 404 || e.status === 400 ? 'We could not find that product.' : e.message));
   }, [id]);
 
@@ -28,11 +33,13 @@ export default function ProductDetail() {
   if (!data) return <Spinner />;
   const p = data.product;
   const out = p.stock === 0;
-  const maxQty = Math.min(p.stock, 10);
+  const sized = p.sizes && p.sizes.length > 0;
+  const maxQty = Math.min(sized ? (p.sizes.find((s) => s.label === size)?.stock || 1) : p.stock, 10);
 
   const addToCart = async () => {
+    if (sized && !size) { setSizeErr('Please choose a size'); return; }
     setBusy(true); setMsg('');
-    try { await add(p._id, qty); } catch (e) { setMsg(e.message); } finally { setBusy(false); }
+    try { await add(p._id, qty, size); } catch (e) { setMsg(e.message); } finally { setBusy(false); }
   };
 
   return (
@@ -57,11 +64,13 @@ export default function ProductDetail() {
         <div className="pdp-info">
           {p.category && <p className="eyebrow">{p.category.name}</p>}
           <h1>{p.name}</h1>
+          {p.ratingCount > 0 && <a href="#rev-h" className="pdp-rate"><Stars value={p.ratingAvg} /><span>{p.ratingAvg.toFixed(1)} ({p.ratingCount})</span></a>}
           <p className="pdp-price">{money(p.price)} <small>incl. taxes</small></p>
           <p className={`stock ${out ? 'out' : p.stock <= 5 ? 'low' : 'in'}`}>
             {out ? 'Sold out' : p.stock <= 5 ? `Only ${p.stock} left` : 'In stock, ships in 2 to 3 days'}
           </p>
           <p className="pdp-desc">{p.description}</p>
+          <SizePicker sizes={p.sizes} value={size} onChange={(s) => { setSize(s); setSizeErr(''); setQty(1); }} error={sizeErr} />
           <div className="buy">
             <label className="qty">Quantity
               <select value={qty} disabled={out} onChange={(e) => setQty(Number(e.target.value))}>
@@ -80,6 +89,7 @@ export default function ProductDetail() {
           </ul>
         </div>
       </div>
+      <Reviews productId={p._id} onChange={() => api.get(`/products/${id}`).then(setData).catch(() => {})} />
       {data.related.length > 0 && (
         <section className="section" aria-labelledby="rel-h">
           <div className="section-head"><h2 id="rel-h">More from {p.category && p.category.name}</h2></div>

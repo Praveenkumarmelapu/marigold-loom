@@ -1,6 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom';
 import Logo from './Logo.jsx';
+import SearchBox from './SearchBox.jsx';
 import { HeartIcon } from './HeartButton';
 import { useWishlist } from '../context/WishlistContext';
 import { SearchIcon, UserIcon, BagIcon, MenuIcon, CloseIcon } from './Icons.jsx';
@@ -18,14 +19,14 @@ export default function Header() {
   const catLink = (slug, label) => (
     <Link to={`/shop?category=${slug}`} className={loc.pathname === '/shop' && loc.search.includes(`category=${slug}`) ? 'active' : ''} onClick={close}>{label}</Link>
   );
-  const [q, setQ] = useState('');
   const [open, setOpen] = useState(false);
-
-  const submit = (e) => {
-    e.preventDefault();
-    nav(`/shop${q.trim() ? `?q=${encodeURIComponent(q.trim())}` : ''}`);
-    setOpen(false);
-  };
+  const [msearch, setMsearch] = useState(false);
+  useEffect(() => { setOpen(false); setMsearch(false); }, [loc.pathname]);
+  useEffect(() => {
+    const onKey = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, []);
   const close = () => setOpen(false);
 
   return (
@@ -46,16 +47,10 @@ export default function Header() {
           {catLink('footwear', 'Footwear')}
           {catLink('accessories', 'Accessories')}
           {user && user.role === 'admin' && <NavLink to="/admin" onClick={close}>Admin</NavLink>}
-          <form className="search mobile-search" role="search" onSubmit={submit}>
-            <input type="search" aria-label="Search products" placeholder="Search" value={q} onChange={(e) => setQ(e.target.value)} />
-            <button aria-label="Search"><SearchIcon /></button>
-          </form>
         </nav>
-        <form className="search desktop-search" role="search" onSubmit={submit}>
-          <input type="search" aria-label="Search products" placeholder="Search the shop" value={q} onChange={(e) => setQ(e.target.value)} />
-          <button aria-label="Search"><SearchIcon /></button>
-        </form>
+        <SearchBox className="desktop-search" />
         <div className="actions">
+          <button className="icon-btn mobile-search-btn" aria-label={msearch ? 'Close search' : 'Search'} aria-expanded={msearch} onClick={() => setMsearch(!msearch)}>{msearch ? <CloseIcon /> : <SearchIcon />}</button>
           {user ? (
             <>
               <Link to="/account" className="icon-link" aria-label="Your account"><UserIcon /><span className="hide-sm">{user.name.split(' ')[0]}</span></Link>
@@ -74,6 +69,8 @@ export default function Header() {
           </Link>
         </div>
       </div>
+      {msearch && <div className="mobile-search-row container"><SearchBox autoFocus onDone={() => setMsearch(false)} /></div>}
+      {open && <button className="nav-scrim" aria-label="Close menu" tabIndex={-1} onClick={close} />}
     </header>
   );
 }

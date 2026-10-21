@@ -64,7 +64,7 @@ export default function AdminOrders() {
                     <div className="two-col">
                       <div>
                         <strong>Items</strong>
-                        <ul className="mini-list">{o.items.map((i) => <li key={i.name}><span>{i.name} x {i.quantity}</span><span>{money(i.lineTotal)}</span></li>)}</ul>
+                        <ul className="mini-list">{o.items.map((i) => <li key={i.name+(i.size||'')}><span>{i.name}{i.size?` (${i.size})`:''} x {i.quantity}</span><span>{money(i.lineTotal)}</span></li>)}</ul>
                         <p className="muted small">Subtotal {money(o.subtotal)}{o.discount > 0 && ` | Discount ${money(o.discount)} (${o.couponCode})`} | Shipping {o.shipping ? money(o.shipping) : 'free'} | {o.paymentMethod}</p>
                       </div>
                       <div>

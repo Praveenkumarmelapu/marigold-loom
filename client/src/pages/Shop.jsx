@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { api } from '../lib/api';
 import ProductGrid from '../components/ProductGrid.jsx';
-import Spinner from '../components/Spinner.jsx';
+import { GridSkeleton } from '../components/Skeleton.jsx';
 
 const SORTS = [
   ['newest', 'Newest'],
@@ -76,7 +76,7 @@ export default function Shop() {
 
         <section aria-live="polite">
           <div className="toolbar">
-            <span className="muted">{data ? `${data.total} ${data.total === 1 ? 'product' : 'products'}` : ' '}</span>
+            <span className="muted">{data ? `${data.total} ${data.total === 1 ? 'product' : 'products'}${q ? ` for "${q}"` : ''}` : ' '}</span>
             <label className="sort">Sort by
               <select value={sort} onChange={(e) => update({ sort: e.target.value === 'newest' ? '' : e.target.value })}>
                 {SORTS.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -84,9 +84,9 @@ export default function Shop() {
             </label>
           </div>
           {error && <p className="notice error" role="alert">{error} <button className="text-btn" onClick={() => update({})}>Retry</button></p>}
-          {!data && !error && <Spinner />}
+          {!data && !error && <GridSkeleton n={6} />}
           {data && data.products.length === 0 && (
-            <div className="state-box"><h2>Nothing matches that</h2><p>Try a different word or clear the filters.</p><button className="btn btn-small" onClick={() => setParams({})}>Clear filters</button></div>
+            <div className="state-box"><h2>{q ? `No results for "${q}"` : 'Nothing matches that'}</h2><p>Check the spelling, try a shorter word like "shirt", or clear the filters.</p><button className="btn btn-small" onClick={() => setParams({})}>Clear filters</button></div>
           )}
           {data && data.products.length > 0 && <ProductGrid products={data.products} />}
           {data && data.pages > 1 && (

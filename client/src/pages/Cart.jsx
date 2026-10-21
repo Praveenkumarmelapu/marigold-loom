@@ -32,18 +32,19 @@ export default function Cart() {
       <div className="cart-layout">
         <ul className="cart-list">
           {cart.items.map((it) => (
-            <li key={it.productId} className={`cart-row ${it.available ? '' : 'unavailable'}`}>
+            <li key={it.key||it.productId} className={`cart-row ${it.available ? '' : 'unavailable'}`}>
               <Link to={`/product/${it.productId}`} className="cart-img">{it.image && <img src={img(it.image, 240)} alt="" />}</Link>
               <div className="cart-info">
                 <Link to={`/product/${it.productId}`}><h3>{it.name}</h3></Link>
+                {it.size && <span className="muted">Size: {it.size}</span>}
                 <span className="muted">{money(it.price)} each</span>
                 {!it.available && <span className="stock out">Sold out, remove to continue</span>}
-                <button className="text-btn" onClick={() => run(() => remove(it.productId))}>Remove</button>
+                <button className="text-btn" onClick={() => run(() => remove(it.productId, it.size))}>Remove</button>
               </div>
               <div className="stepper" role="group" aria-label={`Quantity for ${it.name}`}>
-                <button aria-label="Decrease quantity" disabled={it.quantity <= 1} onClick={() => run(() => setQty(it.productId, it.quantity - 1))}>&minus;</button>
+                <button aria-label="Decrease quantity" disabled={it.quantity <= 1} onClick={() => run(() => setQty(it.productId, it.quantity - 1, it.size))}>&minus;</button>
                 <span aria-live="polite">{it.quantity}</span>
-                <button aria-label="Increase quantity" disabled={it.quantity >= it.stock || it.quantity >= 20} onClick={() => run(() => setQty(it.productId, it.quantity + 1))}>+</button>
+                <button aria-label="Increase quantity" disabled={it.quantity >= it.stock || it.quantity >= 20} onClick={() => run(() => setQty(it.productId, it.quantity + 1, it.size))}>+</button>
               </div>
               <strong className="line-total">{money(it.lineTotal)}</strong>
             </li>

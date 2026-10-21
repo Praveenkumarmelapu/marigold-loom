@@ -94,7 +94,7 @@ export default function Checkout() {
         <aside className="summary" aria-label="Order summary">
           <h2>Summary</h2>
           <ul className="mini-list">
-            {cart.items.map((it) => <li key={it.productId}><span>{it.name} x {it.quantity}</span><span>{money(it.lineTotal)}</span></li>)}
+            {cart.items.map((it) => <li key={it.key||it.productId}><span>{it.name}{it.size?` (${it.size})`:''} x {it.quantity}</span><span>{money(it.lineTotal)}</span></li>)}
           </ul>
           <form className="coupon-form" onSubmit={apply}>
             <input aria-label="Coupon code" placeholder="Coupon code" value={code} onChange={(e) => setCode(e.target.value)} maxLength={20} />

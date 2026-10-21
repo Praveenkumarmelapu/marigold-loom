@@ -19,6 +19,7 @@ import AdminDashboard from './pages/admin/AdminDashboard.jsx';
 import AdminOrders from './pages/admin/AdminOrders.jsx';
 import AdminCoupons from './pages/admin/AdminCoupons.jsx';
 import AdminCustomers from './pages/admin/AdminCustomers.jsx';
+import AdminReviews from './pages/admin/AdminReviews.jsx';
 import AdminSettings from './pages/admin/AdminSettings.jsx';
 import NotFound from './pages/NotFound.jsx';
 
@@ -34,7 +35,7 @@ export default function App() {
       <a className="skip" href="#main">Skip to content</a>
       <ScrollTop />
       <Header />
-      <main id="main">
+      <main id="main" key={useLocation().pathname} className="page-fade">
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/shop" element={<Shop />} />
@@ -50,6 +51,7 @@ export default function App() {
             <Route path="orders" element={<AdminOrders />} />
             <Route path="coupons" element={<AdminCoupons />} />
             <Route path="customers" element={<AdminCustomers />} />
+            <Route path="reviews" element={<AdminReviews />} />
             <Route path="settings" element={<AdminSettings />} />
             <Route path="products" element={<AdminProducts />} />
             <Route path="categories" element={<AdminCategories />} />

@@ -36,7 +36,7 @@ export default function Account() {
                 <tr key={o._id}>
                   <td><strong>{o.number}</strong></td>
                   <td>{new Date(o.createdAt).toLocaleDateString('en-IN')}</td>
-                  <td>{o.items.map((i) => `${i.name} x ${i.quantity}`).join(', ')}</td>
+                  <td>{o.items.map((i) => `${i.name}${i.size?` (${i.size})`:''} x ${i.quantity}`).join(', ')}</td>
                   <td><span className={`status status-${o.status}`}>{o.status}</span></td>
                   <td className="num">{money(o.total)}</td>
                 </tr>

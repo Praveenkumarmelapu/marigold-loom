@@ -8,6 +8,7 @@ const HttpError = require('../utils/httpError');
 const asyncHandler = require('../utils/asyncHandler');
 const { safeString, escapeRegex } = require('../utils/sanitize');
 const { applyCoupon } = require('./couponController');
+const { hasSizes, stockFor } = require('../utils/stock');
 
 const FREE_SHIPPING_OVER = 2500;
 const SHIPPING_FEE = 99;
@@ -28,6 +29,15 @@ const orderSchema = z.object({
 });
 const statusSchema = z.object({ status: z.enum(STATUSES, { errorMap: () => ({ message: 'Invalid status' }) }) });
 
+// Atomically change stock for a product, or for one size (keeping the total in step).
+async function adjustStock(productId, size, delta, guard = false) {
+  if (size) {
+    const cond = { _id: productId, sizes: { $elemMatch: guard ? { label: size, stock: { $gte: -delta } } : { label: size } } };
+    return Product.updateOne(cond, { $inc: { 'sizes.$.stock': delta, stock: delta } });
+  }
+  return Product.updateOne(guard ? { _id: productId, stock: { $gte: -delta } } : { _id: productId }, { $inc: { stock: delta } });
+}
+
 // Prices and stock always come from the database.
 async function priceCart(userId, couponCode) {
   const cart = await Cart.findOne({ user: userId }).populate('items.product');
@@ -35,8 +45,10 @@ async function priceCart(userId, couponCode) {
   for (const it of cart ? cart.items : []) {
     const p = it.product;
     if (!p) continue;
-    if (p.stock < it.quantity) throw new HttpError(409, p.stock === 0 ? `${p.name} is sold out. Remove it from your cart.` : `Only ${p.stock} of ${p.name} left. Update your cart.`);
-    lines.push({ product: p._id, name: p.name, image: p.images[0] ? p.images[0].url : '', price: p.price, quantity: it.quantity, lineTotal: p.price * it.quantity });
+    const stock = stockFor(p, it.size);
+    const label = it.size ? `${p.name} (${it.size})` : p.name;
+    if (stock < it.quantity) throw new HttpError(409, stock === 0 ? `${label} is sold out. Remove it from your cart.` : `Only ${stock} of ${label} left. Update your cart.`);
+    lines.push({ product: p._id, size: it.size || '', name: p.name, image: p.images[0] ? p.images[0].url : '', price: p.price, quantity: it.quantity, lineTotal: p.price * it.quantity });
   }
   if (!lines.length) throw new HttpError(400, 'Your cart is empty');
   const subtotal = lines.reduce((s, l) => s + l.lineTotal, 0);
@@ -61,7 +73,7 @@ const place = asyncHandler(async (req, res) => {
   const reserved = [];
   try {
     for (const l of q.lines) {
-      const r = await Product.updateOne({ _id: l.product, stock: { $gte: l.quantity } }, { $inc: { stock: -l.quantity } });
+      const r = await adjustStock(l.product, l.size, -l.quantity, true);
       if (r.modifiedCount !== 1) throw new HttpError(409, `${l.name} just sold out. Please review your cart.`);
       reserved.push(l);
     }
@@ -73,7 +85,7 @@ const place = asyncHandler(async (req, res) => {
       if (r.modifiedCount !== 1) throw new HttpError(400, 'That coupon has been fully used');
     }
   } catch (err) {
-    for (const l of reserved) await Product.updateOne({ _id: l.product }, { $inc: { stock: l.quantity } });
+    for (const l of reserved) await adjustStock(l.product, l.size, l.quantity);
     throw err;
   }
   const number = `ML-${Date.now().toString(36).toUpperCase()}${Math.random().toString(36).slice(2, 5).toUpperCase()}`;
@@ -104,7 +116,7 @@ const adminStatus = asyncHandler(async (req, res) => {
   const next = req.body.status;
   if (order.status === 'cancelled') throw new HttpError(409, 'A cancelled order cannot be changed');
   if (next === 'cancelled') {
-    for (const it of order.items) await Product.updateOne({ _id: it.product }, { $inc: { stock: it.quantity } });
+    for (const it of order.items) await adjustStock(it.product, it.size, it.quantity);
     if (order.couponCode) await Coupon.updateOne({ code: order.couponCode, used: { $gt: 0 } }, { $inc: { used: -1 } });
   }
   order.status = next;

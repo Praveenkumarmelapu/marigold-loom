@@ -7,6 +7,7 @@ const auth = require('../controllers/authController');
 const products = require('../controllers/productController');
 const categories = require('../controllers/categoryController');
 const cart = require('../controllers/cartController');
+const reviews = require('../controllers/reviewController');
 const wishlist = require('../controllers/wishlistController');
 const uploads = require('../controllers/uploadController');
 const settings = require('../controllers/settingsController');
@@ -34,7 +35,11 @@ router.get('/auth/me', auth.me);
 
 // Catalog (public read)
 router.get('/products', validate(products.listQuerySchema, 'query'), products.list);
+router.get('/products/suggest', products.suggest);
 router.get('/products/:id', products.getOne);
+router.get('/products/:id/reviews', reviews.list);
+router.post('/products/:id/reviews', requireAuth, validate(reviews.reviewSchema), reviews.save);
+router.delete('/products/:id/reviews', requireAuth, reviews.removeMine);
 router.get('/categories', categories.list);
 
 // Customer cart
@@ -71,6 +76,8 @@ router.get('/admin/coupons', coupons.list);
 router.post('/admin/coupons', validate(coupons.couponSchema), coupons.create);
 router.put('/admin/coupons/:id', validate(coupons.couponSchema), coupons.update);
 router.delete('/admin/coupons/:id', coupons.remove);
+router.get('/admin/reviews', reviews.adminList);
+router.delete('/admin/reviews/:id', reviews.adminRemove);
 router.post('/admin/uploads', upload.single('image'), uploads.uploadImage);
 
 module.exports = router;

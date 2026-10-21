@@ -5,7 +5,7 @@ import { api, img } from '../lib/api';
 import { useSettings } from '../context/SettingsContext.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
 import HeroCarousel from '../components/HeroCarousel.jsx';
-import Spinner from '../components/Spinner.jsx';
+import { GridSkeleton } from '../components/Skeleton.jsx';
 import { ArrowIcon } from '../components/Icons.jsx';
 
 const CAT_IMAGES = { women: '/shop/plaid-coat.jpg', men: '/shop/blazer.jpg', footwear: '/shop/runner.jpg', accessories: '/shop/handbag.jpg' };
@@ -64,7 +64,7 @@ export default function Home() {
           <Link to="/shop" className="link-arrow">View all <ArrowIcon /></Link>
         </div>
         {error && <p className="notice error" role="alert">{error}</p>}
-        {!featured && !error ? <Spinner /> : featured && <ProductGrid products={featured} />}
+        {!featured && !error ? <GridSkeleton n={4} /> : featured && <ProductGrid products={featured} />}
       </section>
 
       {offer.enabled && (
@@ -85,7 +85,7 @@ export default function Home() {
           <div><p className="eyebrow">Just in</p><h2 id="new-h">New arrivals</h2></div>
           <Link to="/shop?sort=newest" className="link-arrow">Newest first <ArrowIcon /></Link>
         </div>
-        {!fresh && !error ? <Spinner /> : fresh && <ProductGrid products={fresh} />}
+        {!fresh && !error ? <GridSkeleton n={4} /> : fresh && <ProductGrid products={fresh} />}
       </section>
 
       <section className="container section story">
