@@ -79,16 +79,27 @@ export default function AdminSettings() {
         </fieldset>
 
         <fieldset>
-          <legend>Hero banner (top of the home page)</legend>
-          <Field label="Small label" error={err('hero.eyebrow')}><input value={f.hero.eyebrow} onChange={sec('hero', 'eyebrow')} /></Field>
-          <Field label="Headline" error={err('hero.title')}><input value={f.hero.title} onChange={sec('hero', 'title')} /></Field>
-          <Field label="Text" error={err('hero.text')}><textarea rows="3" value={f.hero.text} onChange={sec('hero', 'text')} /></Field>
-          <div className="two-col">
-            <Field label="Button text" error={err('hero.buttonText')}><input value={f.hero.buttonText} onChange={sec('hero', 'buttonText')} /></Field>
-            <Field label="Button link" error={err('hero.buttonLink')}><input value={f.hero.buttonLink} onChange={sec('hero', 'buttonLink')} /></Field>
-          </div>
-          <ImagePicker label="Hero image" value={f.hero.imageUrl} onChange={(u) => setF({ ...f, hero: { ...f.hero, imageUrl: u } })} />
-          {err('hero.imageUrl') && <span className="field-error">{err('hero.imageUrl')}</span>}
+          <legend>Hero banners (sliding, top of the home page)</legend>
+          <p className="hint">The home page shows these banners one at a time and slides between them automatically, like the big shopping apps. Keep at least 3.</p>
+          {(f.hero.slides || []).map((sl, i) => {
+            const setSlide = (k, v) => { const slides = f.hero.slides.map((x, j) => (j === i ? { ...x, [k]: v } : x)); setF({ ...f, hero: { ...f.hero, slides } }); };
+            const serr = (k) => err(`hero.slides.${i}.${k}`);
+            return (
+              <div className="slide-editor" key={i}>
+                <h3 className="slide-editor-h">Banner {i + 1}</h3>
+                <ImagePicker label="Banner image" value={sl.imageUrl} onChange={(u) => setSlide('imageUrl', u)} />
+                {serr('imageUrl') && <span className="field-error">{serr('imageUrl')}</span>}
+                <Field label="Small label" error={serr('eyebrow')}><input value={sl.eyebrow} onChange={(e) => setSlide('eyebrow', e.target.value)} /></Field>
+                <Field label="Headline" error={serr('title')}><input value={sl.title} onChange={(e) => setSlide('title', e.target.value)} /></Field>
+                <Field label="Text" error={serr('text')}><textarea rows="2" value={sl.text} onChange={(e) => setSlide('text', e.target.value)} /></Field>
+                <div className="two-col">
+                  <Field label="Button text" error={serr('buttonText')}><input value={sl.buttonText} onChange={(e) => setSlide('buttonText', e.target.value)} /></Field>
+                  <Field label="Button link" error={serr('buttonLink')}><input value={sl.buttonLink} onChange={(e) => setSlide('buttonLink', e.target.value)} placeholder="/shop?category=women" /></Field>
+                </div>
+              </div>
+            );
+          })}
+          {err('hero.slides') && <span className="field-error">{err('hero.slides')}</span>}
         </fieldset>
 
         <fieldset>

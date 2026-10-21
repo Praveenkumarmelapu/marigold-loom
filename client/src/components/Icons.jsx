@@ -5,3 +5,5 @@ export const BagIcon = () => (<svg {...p}><path d="M5 8h14l-1 12H6L5 8Z" /><path
 export const MenuIcon = () => (<svg {...p}><path d="M4 7h16M4 12h16M4 17h16" /></svg>);
 export const CloseIcon = () => (<svg {...p}><path d="m6 6 12 12M18 6 6 18" /></svg>);
 export const ArrowIcon = () => (<svg {...p} width="18" height="18"><path d="M5 12h14M13 6l6 6-6 6" /></svg>);
+export const ChevronLeftIcon = () => (<svg {...p} width="24" height="24"><path d="m14 6-6 6 6 6" /></svg>);
+export const ChevronRightIcon = () => (<svg {...p} width="24" height="24"><path d="m10 6 6 6-6 6" /></svg>);

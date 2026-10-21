@@ -1,6 +1,17 @@
 const mongoose = require('mongoose');
 
-// One document (key "site") holds the storefront look: theme colours, hero banner, offer banner.
+// One document (key "site") holds the storefront look: theme colours, hero banner slides, offer banner.
+const slideSchema = new mongoose.Schema(
+  {
+    eyebrow: { type: String, default: '' },
+    title: { type: String, default: '' },
+    text: { type: String, default: '' },
+    buttonText: { type: String, default: 'Shop now' },
+    buttonLink: { type: String, default: '/shop' },
+    imageUrl: { type: String, default: '' },
+  },
+  { _id: false }
+);
 const settingSchema = new mongoose.Schema(
   {
     key: { type: String, required: true, unique: true, default: 'site' },
@@ -17,6 +28,7 @@ const settingSchema = new mongoose.Schema(
       buttonText: { type: String, default: 'Shop the collection' },
       buttonLink: { type: String, default: '/shop' },
       imageUrl: { type: String, default: '/shop/hero.jpg' },
+      slides: { type: [slideSchema], default: [] },
     },
     offer: {
       enabled: { type: Boolean, default: true },

@@ -3,8 +3,12 @@ import { Link } from 'react-router-dom';
 import { api, img } from '../lib/api';
 import { useSettings } from '../context/SettingsContext.jsx';
 import ProductGrid from '../components/ProductGrid.jsx';
+import HeroCarousel from '../components/HeroCarousel.jsx';
 import Spinner from '../components/Spinner.jsx';
 import { ArrowIcon } from '../components/Icons.jsx';
+
+const CAT_IMAGES = { women: '/shop/plaid-coat.jpg', men: '/shop/blazer.jpg', footwear: '/shop/runner.jpg', accessories: '/shop/handbag.jpg' };
+const ORDER = ['women', 'men', 'footwear', 'accessories'];
 
 export default function Home() {
   const { settings } = useSettings();
@@ -20,43 +24,34 @@ export default function Home() {
       api.get('/products?sort=newest&limit=4'),
       api.get('/categories'),
     ])
-      .then(([f, n, c]) => { setFeatured(f.products); setFresh(n.products); setCats(['women', 'men', 'footwear', 'accessories'].map((slug) => c.categories.find((x) => x.slug === slug)).filter(Boolean).concat(c.categories.filter((x) => !['women', 'men', 'footwear', 'accessories'].includes(x.slug)))); })
+      .then(([f, n, c]) => { setFeatured(f.products); setFresh(n.products); setCats(ORDER.map((slug) => c.categories.find((x) => x.slug === slug)).filter(Boolean).concat(c.categories.filter((x) => !ORDER.includes(x.slug)))); })
       .catch((e) => setError(e.message));
   }, []);
 
   return (
     <>
-      <section className="hero container">
-        <div className="hero-copy">
-          <p className="eyebrow">{hero.eyebrow}</p>
-          <h1>{hero.title}</h1>
-          <p className="lede">{hero.text}</p>
-          <div className="hero-cta">
-            <Link to={hero.buttonLink} className="btn">{hero.buttonText} <ArrowIcon /></Link>
-            <Link to="/shop?sort=newest" className="link-arrow">See what is new</Link>
-          </div>
-          <ul className="hero-notes">
-            <li><strong>20</strong> new styles</li>
-            <li><strong>7 day</strong> returns</li>
-            <li><strong>Free</strong> shipping over &#8377;2,500</li>
-          </ul>
-        </div>
-        <div className="hero-art">
-          <div className="hero-block" aria-hidden="true" />
-          <img src={img(hero.imageUrl, 1000)} alt="Featured look from the new collection" />
-          <div className="hero-stamp"><span>New in</span><strong>The Autumn Edit</strong><small>Coats, dresses and tailoring</small></div>
-        </div>
+      <HeroCarousel slides={hero.slides} storeName={settings.storeName} />
+
+      <section className="container service-strip" aria-label="Store promises">
+        <div><strong>20+</strong><span>new styles this season</span></div>
+        <div><strong>7 day</strong><span>easy returns, no questions</span></div>
+        <div><strong>Free</strong><span>shipping over &#8377;2,500</span></div>
       </section>
 
       <section className="container section" aria-labelledby="cats-h">
-        <div className="section-head"><h2 id="cats-h">Shop by category</h2></div>
-        <div className="cat-row">
+        <div className="section-head">
+          <div><p className="eyebrow">The collections</p><h2 id="cats-h">Shop by category</h2></div>
+          <Link to="/shop" className="link-arrow">View everything <ArrowIcon /></Link>
+        </div>
+        <div className="cat-grid">
           {cats.map((c) => (
-            <Link key={c._id} to={`/shop?category=${c.slug}`} className={`cat-tile cat-${c.slug}`}>
-              <span className="cat-count">{String(c.productCount).padStart(2, '0')} pieces</span>
-              <h3>{c.name}</h3>
-              <p>{c.blurb}</p>
-              <span className="link-arrow">Explore <ArrowIcon /></span>
+            <Link key={c._id} to={`/shop?category=${c.slug}`} className="cat-card">
+              <span className="cat-media"><img src={CAT_IMAGES[c.slug] || '/shop/hero.jpg'} alt="" loading="lazy" /></span>
+              <span className="cat-body">
+                <span className="cat-top"><span className="cat-name">{c.name}</span><span className="cat-count">{String(c.productCount).padStart(2, '0')} pieces</span></span>
+                <span className="cat-blurb">{c.blurb}</span>
+                <span className="link-arrow">Explore <ArrowIcon /></span>
+              </span>
             </Link>
           ))}
         </div>
@@ -64,7 +59,7 @@ export default function Home() {
 
       <section className="container section" aria-labelledby="feat-h">
         <div className="section-head">
-          <h2 id="feat-h">Featured styles</h2>
+          <div><p className="eyebrow">Handpicked</p><h2 id="feat-h">Featured styles</h2></div>
           <Link to="/shop" className="link-arrow">View all <ArrowIcon /></Link>
         </div>
         {error && <p className="notice error" role="alert">{error}</p>}
@@ -86,7 +81,7 @@ export default function Home() {
 
       <section className="container section" aria-labelledby="new-h">
         <div className="section-head">
-          <h2 id="new-h">New arrivals</h2>
+          <div><p className="eyebrow">Just in</p><h2 id="new-h">New arrivals</h2></div>
           <Link to="/shop?sort=newest" className="link-arrow">Newest first <ArrowIcon /></Link>
         </div>
         {!fresh && !error ? <Spinner /> : fresh && <ProductGrid products={fresh} />}
