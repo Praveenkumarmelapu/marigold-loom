@@ -32,7 +32,7 @@ const list = asyncHandler(async (req, res) => {
   if (req.user) mine = await Review.findOne({ product: req.params.id, user: req.user._id }).select('rating title comment').lean();
   let purchased = false;
   if (req.user) purchased = !!(await Order.exists({ user: req.user._id, 'items.product': req.params.id, status: { $ne: 'cancelled' } }));
-  res.json({ reviews, average: product.ratingAvg, count: product.ratingCount, breakdown, mine, purchased });
+  res.json({ reviews, average: product.ratingAvg || 0, count: product.ratingCount || 0, breakdown, mine, purchased });
 });
 
 const save = asyncHandler(async (req, res) => {
