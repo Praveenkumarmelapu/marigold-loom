@@ -687,3 +687,14 @@ html, body { overflow-x: clip; }
 .pcard { display: flex; flex-direction: column; height: 100%; }
 .pcard-body { display: flex; flex-direction: column; flex: 1; }
 .pcard-body .card-purchase { margin-top: auto; padding-top: 14px; }
+
+/* Admin tables become stacked cards on phones so nothing hides off-screen */
+@media (max-width: 700px) {
+  .admin-main .table-wrap { border: 0; background: transparent; overflow: visible; }
+  .admin-main .table, .admin-main .table tbody { display: block; }
+  .admin-main .table thead { display: none; }
+  .admin-main .table tr { display: block; background: var(--paper); border: 1px solid var(--line); margin-bottom: .8rem; padding: .3rem 0; }
+  .admin-main .table td { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: .5rem .9rem; border-bottom: 0; text-align: right; }
+  .admin-main .table td[data-label]::before { content: attr(data-label); font-size: .7rem; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-soft); text-align: left; flex: none; }
+  .admin-main .table td.num { text-align: right; }
+}
