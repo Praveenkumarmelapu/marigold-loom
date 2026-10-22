@@ -664,3 +664,26 @@ html { scroll-padding-top: 110px; }
 
 /* Safety net: nothing may push the page wider than the viewport */
 html, body { overflow-x: clip; }
+
+/* Header fixes: Sign up button, mobile menu auth links, promo, auth art */
+.actions { flex: none; flex-wrap: nowrap; }
+.actions .btn, .actions .text-btn, .actions .icon-link { flex: none; white-space: nowrap; }
+.actions .signup-btn { padding: .62rem 1.15rem; line-height: 1.2; height: auto; align-self: center; }
+.nav-auth { display: none; }
+.promo span { white-space: nowrap; }
+@media (max-width: 1024px) {
+  .nav-auth { display: block; }
+  .nav button.nav-auth { background: none; border: 0; text-align: left; font: inherit; font-size: 1.05rem; padding: .7rem 0; color: inherit; cursor: pointer; }
+  .nav .nav-auth:first-of-type { margin-top: .4rem; }
+  .nav-auth { border-top: 0 !important; }
+}
+@media (max-width: 600px) {
+  .promo { font-size: .62rem; letter-spacing: .08em; padding: .45rem .5rem; }
+  .promo-sep, .promo span:last-child { display: none; }
+  .auth-art { min-height: 240px; padding-top: 6.5rem; }
+}
+
+/* Product cards: keep price and button aligned across a row */
+.pcard { display: flex; flex-direction: column; height: 100%; }
+.pcard-body { display: flex; flex-direction: column; flex: 1; }
+.pcard-body .card-purchase { margin-top: auto; padding-top: 14px; }

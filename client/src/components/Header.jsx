@@ -31,7 +31,7 @@ export default function Header() {
 
   return (
     <header className="site-header">
-      <div className="promo">Free shipping across India on orders over &#8377;2,500 &middot; 7-day easy returns</div>
+      <div className="promo"><span>Free shipping across India on orders over &#8377;2,500</span><span className="promo-sep"> &middot; </span><span>7-day easy returns</span></div>
       <div className="bar container">
         <button className="icon-btn menu-btn" aria-label={open ? 'Close menu' : 'Open menu'} aria-expanded={open} onClick={() => setOpen(!open)}>
           {open ? <CloseIcon /> : <MenuIcon />}
@@ -46,6 +46,10 @@ export default function Header() {
           {catLink('men', 'Men')}
           {catLink('footwear', 'Footwear')}
           {catLink('accessories', 'Accessories')}
+          {!user && <Link to="/login" className="nav-auth" onClick={close}>Log in</Link>}
+          {!user && <Link to="/signup" className="nav-auth" onClick={close}>Sign up</Link>}
+          {user && <Link to="/account" className="nav-auth" onClick={close}>My account</Link>}
+          {user && <button type="button" className="nav-auth nav-logout" onClick={async () => { close(); await logout(); nav('/'); }}>Log out</button>}
           {user && user.role === 'admin' && <NavLink to="/admin" onClick={close}>Admin</NavLink>}
         </nav>
         <SearchBox className="desktop-search" />
@@ -59,7 +63,7 @@ export default function Header() {
           ) : (
             <>
               <Link to="/login" className="text-btn">Log in</Link>
-              <Link to="/signup" className="btn btn-small hide-sm">Sign up</Link>
+              <Link to="/signup" className="btn btn-small signup-btn hide-sm">Sign up</Link>
             </>
           )}
           <Link to="/wishlist" className="icon-link wishlist-link" aria-label={`Wishlist, ${wishes.length} items`}><HeartIcon />{wishes.length > 0 && <span className="badge-count">{wishes.length}</span>}</Link>
